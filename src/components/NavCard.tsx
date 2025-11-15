@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
+import type { Theme } from '../types';
+import { themeTokens } from '../tokens';
 
 type Accent = 'blue' | 'violet';
 
@@ -25,26 +27,37 @@ export interface NavCardProps {
   description: string;
   icon: ReactNode;
   accent?: Accent;
+  theme?: Theme;
 }
 
-export function NavCard({ to, title, description, icon, accent = 'blue' }: NavCardProps) {
+export function NavCard({ to, title, description, icon, accent = 'blue', theme = 'dark' }: NavCardProps) {
   const colors = accentMap[accent] || accentMap.blue;
+  const palette = themeTokens[theme] || themeTokens.dark;
+  const ringOffsetClass = theme === 'light' ? 'focus-visible:ring-offset-white' : 'focus-visible:ring-offset-gray-900';
 
   return (
     <Link
       to={to}
-      className={`group relative bg-gray-800 border border-gray-700 p-6 rounded-lg shadow-lg ${colors.shadow} hover:shadow-xl focus:outline-none transition-all duration-200 ease-in-out hover:scale-[1.03] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${colors.border}`}
+      className={`group relative border p-6 rounded-lg shadow-lg ${colors.shadow} hover:shadow-xl focus:outline-none transition-all duration-200 ease-in-out hover:scale-[1.03] focus-visible:ring-2 focus-visible:ring-offset-2 ${ringOffsetClass} ${colors.border}`}
+      style={{
+        backgroundColor: palette.surfaceRaised,
+        borderColor: palette.border,
+        color: palette.textPrimary,
+      }}
       aria-label={`${title} - navigate`}
     >
       <div className="flex justify-between items-start mb-3">
         <div className={`${colors.icon} transition-colors`}>{icon}</div>
         <ArrowRight
           size={20}
-          className={`text-gray-500 transition-transform duration-200 ease-in-out group-hover:translate-x-1 ${colors.arrow}`}
+          className={`transition-transform duration-200 ease-in-out group-hover:translate-x-1 ${colors.arrow}`}
+          style={{ color: palette.textMuted }}
         />
       </div>
-      <h3 className="text-lg font-semibold text-gray-100 mb-1">{title}</h3>
-      <p className="text-sm text-gray-300 leading-normal">{description}</p>
+      <h3 className="text-lg font-semibold mb-1">{title}</h3>
+      <p className="text-sm leading-normal" style={{ color: palette.textMuted }}>
+        {description}
+      </p>
     </Link>
   );
 }

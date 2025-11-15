@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode, CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { PrimaryNav } from './PrimaryNav';
 import type { NavItem } from '../types';
+import { useOptionalTheme } from '../context/ThemeContext';
 
 type NavVariant = 'violet' | 'blue' | 'sage' | 'default';
 
@@ -74,11 +75,22 @@ export function Navbar({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Use theme context if available, otherwise fall back to variants
+  const themeContext = useOptionalTheme();
+  const theme = themeContext?.theme;
+
   const colors = variantColors[variant];
   const finalBgColor = bgColor || colors.bg;
   const finalBorderColor = borderColor || colors.border;
   const finalTextColor = textColor || colors.text;
   const finalAccentColor = accentColor || colors.accent;
+
+  // Build inline styles from theme if available
+  const navStyle: CSSProperties = theme ? {
+    backgroundColor: theme.surface?.base,
+    borderColor: theme.surface?.border,
+    color: theme.text?.primary,
+  } : {};
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -129,7 +141,8 @@ export function Navbar({
       </a>
 
       <nav
-        className={`w-full ${finalBgColor} ${finalTextColor} shadow-md px-4 sm:px-6 py-4 flex items-center justify-between z-40 sticky top-0 backdrop-blur-sm bg-opacity-95 border-b ${finalBorderColor}`}
+        className={`w-full ${theme ? '' : finalBgColor} ${theme ? '' : finalTextColor} shadow-md px-4 sm:px-6 py-4 flex items-center justify-between z-40 sticky top-0 backdrop-blur-sm bg-opacity-95 border-b ${theme ? '' : finalBorderColor}`}
+        style={navStyle}
         role="navigation"
         aria-label="Main navigation"
       >

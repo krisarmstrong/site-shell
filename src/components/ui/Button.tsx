@@ -10,9 +10,10 @@ const sizeClasses = {
   lg: 'px-6 py-3 text-base',
 } as const;
 
-const primaryTone: Record<'blue' | 'violet', string> = {
+const primaryTone: Record<'blue' | 'violet' | 'sage', string> = {
   blue: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
   violet: 'bg-violet-600 hover:bg-violet-700 text-white focus:ring-violet-500',
+  sage: 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500',
 };
 
 const variantClasses = {
@@ -29,7 +30,7 @@ type Variant = 'primary' | keyof typeof variantClasses;
 interface BaseButtonProps {
   variant?: Variant;
   size?: Size;
-  tone?: 'blue' | 'violet';
+  tone?: 'blue' | 'violet' | 'sage';
   isLoading?: boolean;
   disabled?: boolean;
   leftIcon?: ReactNode;

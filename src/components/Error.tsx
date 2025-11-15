@@ -5,6 +5,19 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 declare const process: { env?: { NODE_ENV?: string } };
 
 /**
+ * Safely try to get Sentry if it's available
+ * Returns null if Sentry is not installed (optional peer dependency)
+ */
+function getSentry(): typeof import('@sentry/react') | null {
+  try {
+    // @ts-ignore - Sentry is an optional peer dependency
+    return require('@sentry/react');
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Safely check if we're in development mode.
  * This works for both Vite (import.meta.env.MODE) and webpack (process.env.NODE_ENV).
  */
@@ -207,6 +220,10 @@ export interface ErrorBoundaryProps {
   variant?: 'violet' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
   /** Show dev details in development mode */
   showDevDetails?: boolean;
+  /** Enable automatic Sentry error tracking (default: true if Sentry is available) */
+  enableSentry?: boolean;
+  /** Additional context to attach to error reports */
+  errorContext?: Record<string, unknown>;
 }
 
 interface ErrorBoundaryState {
@@ -241,14 +258,45 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    const { onError, showDevDetails = true } = this.props;
+    const { onError, showDevDetails = true, enableSentry = true, errorContext = {} } = this.props;
+
+    // Structured telemetry logging
+    const errorData = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      context: errorContext,
+    };
 
     // Log to console in development
     if (isDevelopmentEnvironment && showDevDetails) {
-      console.error('Uncaught error:', error, errorInfo);
+      console.error('[ErrorBoundary] Caught error:', errorData);
     }
 
-    // Call optional error handler (e.g., Sentry)
+    // Automatically send to Sentry if available and enabled
+    if (enableSentry) {
+      const Sentry = getSentry();
+      if (Sentry) {
+        Sentry.captureException(error, {
+          contexts: {
+            react: {
+              componentStack: errorInfo.componentStack,
+            },
+            custom: errorContext,
+          },
+          tags: {
+            errorBoundary: 'true',
+            location: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+          },
+          level: 'error',
+        });
+      }
+    }
+
+    // Call optional error handler for custom tracking
     if (onError) {
       onError(error, errorInfo);
     }

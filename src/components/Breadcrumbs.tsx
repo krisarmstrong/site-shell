@@ -1,29 +1,38 @@
 import type { BreadcrumbsProps } from '../types';
+import { themeTokens } from '../tokens';
 
-export function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, className = '', theme = 'dark' }: BreadcrumbsProps) {
   if (!items || items.length === 0) {
     return null;
   }
 
+  const palette = themeTokens[theme] || themeTokens.dark;
+
   return (
     <nav
       aria-label="Breadcrumb"
-      className={`flex items-center flex-wrap gap-2 rounded-lg border border-gray-700/60 bg-gray-800/50 px-4 py-3 text-sm ${className}`}
+      className={`flex items-center flex-wrap gap-2 rounded-lg border px-4 py-3 text-sm ${className}`}
+      style={{
+        borderColor: palette.border,
+        backgroundColor: palette.surfaceRaised,
+        color: palette.textPrimary,
+      }}
     >
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
         return (
           <span key={item.path} className="flex items-center gap-2">
-            {index > 0 && <span className="text-gray-600">/</span>}
+            {index > 0 && <span style={{ color: palette.textMuted }}>/</span>}
             {isLast ? (
-              <span className="text-white font-medium" aria-current="page">
+              <span className="font-medium" aria-current="page">
                 {item.label}
               </span>
             ) : (
               <a
                 href={item.path}
-                className="text-gray-300 hover:text-white transition-colors underline-offset-4 hover:underline"
+                className="transition-colors underline-offset-4 hover:underline"
+                style={{ color: palette.textMuted }}
               >
                 {item.label}
               </a>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Search as SearchIcon, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { Theme } from '../types';
+import { themeTokens } from '../tokens';
 
 export interface SearchResult {
   title: string;
@@ -20,6 +22,8 @@ interface SiteSearchProps {
   typeColors?: Record<string, string>;
   /** Max results to show */
   maxResults?: number;
+  /** Theme for modal styling */
+  theme?: Theme;
 }
 
 const defaultTypeColors: Record<string, Record<string, string>> = {
@@ -43,12 +47,14 @@ export function SiteSearch({
   variant = 'violet',
   typeColors,
   maxResults = 8,
+  theme = 'dark',
 }: SiteSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const palette = themeTokens[theme] || themeTokens.dark;
 
   // Handle keyboard shortcut (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -122,29 +128,34 @@ export function SiteSearch({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+        className={`fixed inset-0 ${theme === 'light' ? 'bg-black/30' : 'bg-black/50'} backdrop-blur-sm z-50`}
         onClick={() => setIsOpen(false)}
       />
 
       {/* Search Modal */}
       <div className="fixed inset-x-4 top-20 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-50">
-        <div className="bg-gray-900 rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
+        <div
+          className="rounded-xl shadow-2xl border overflow-hidden"
+          style={{ backgroundColor: palette.surfaceRaised, borderColor: palette.border, color: palette.textPrimary }}
+        >
           {/* Search Input */}
-          <div className="flex items-center gap-3 p-4 border-b border-gray-800">
-            <SearchIcon size={20} className="text-gray-400" />
+          <div className="flex items-center gap-3 p-4 border-b" style={{ borderColor: palette.border }}>
+            <SearchIcon size={20} style={{ color: palette.textMuted }} />
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={placeholder}
-              className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500"
+              className="flex-1 bg-transparent border-none outline-none"
+              style={{ color: palette.textPrimary }}
             />
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-gray-800 rounded transition-colors"
+              className="p-1 rounded transition-colors"
+              style={{ color: palette.textMuted }}
             >
-              <X size={18} className="text-gray-400" />
+              <X size={18} />
             </button>
           </div>
 
@@ -155,26 +166,29 @@ export function SiteSearch({
                 <button
                   key={index}
                   onClick={() => handleResultClick(result.path)}
-                  className="w-full text-left p-4 hover:bg-gray-800 transition-colors border-b border-gray-800 last:border-0"
+                  className="w-full text-left p-4 transition-colors border-b last:border-0"
+                  style={{ borderColor: palette.border, color: palette.textPrimary }}
                 >
                   <div className="flex items-start gap-3">
                     <span className={`px-2 py-0.5 text-xs rounded ${getTypeColor(result.type)}`}>
                       {result.type}
                     </span>
                     <div className="flex-1">
-                      <div className="font-medium text-white mb-1">{result.title}</div>
-                      <div className="text-sm text-gray-400 line-clamp-2">{result.excerpt}</div>
+                      <div className="font-medium mb-1">{result.title}</div>
+                      <div className="text-sm line-clamp-2" style={{ color: palette.textMuted }}>
+                        {result.excerpt}
+                      </div>
                     </div>
                   </div>
                 </button>
               ))}
             </div>
           ) : query.trim() ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center" style={{ color: palette.textMuted }}>
               No results found for "{query}"
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center" style={{ color: palette.textMuted }}>
               Start typing to search...
             </div>
           )}

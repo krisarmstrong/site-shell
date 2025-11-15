@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import type { BreadcrumbItem } from '../types';
+import type { BreadcrumbItem, Theme } from '../types';
 import { Breadcrumbs } from './Breadcrumbs';
-import { layoutTokens } from '../tokens';
+import { layoutTokens, themeTokens } from '../tokens';
 
 interface PageShellProps {
   breadcrumbs?: BreadcrumbItem[];
@@ -9,6 +9,7 @@ interface PageShellProps {
   skipLinkLabel?: string;
   skipLinkTarget?: string;
   className?: string;
+  theme?: Theme;
 }
 
 export function PageShell({
@@ -17,12 +18,18 @@ export function PageShell({
   skipLinkLabel = 'Skip to content',
   skipLinkTarget = '#main-content',
   className = '',
+  theme = 'dark',
 }: PageShellProps) {
+  const palette = themeTokens[theme] || themeTokens.dark;
   return (
-    <div className={`flex min-h-screen flex-col bg-gray-950 text-white ${className}`}>
+    <div
+      className={`flex min-h-screen flex-col transition-colors duration-200 ${className}`}
+      style={{ backgroundColor: palette.surfaceBase, color: palette.textPrimary }}
+    >
       <a
         href={skipLinkTarget}
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:shadow-lg"
+        style={{ backgroundColor: palette.accent, color: '#fff' }}
       >
         {skipLinkLabel}
       </a>
@@ -32,7 +39,7 @@ export function PageShell({
         style={{ maxWidth: layoutTokens.contentMaxWidth, width: '100%', margin: '0 auto' }}
       >
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <Breadcrumbs items={breadcrumbs} className="mb-6" />
+          <Breadcrumbs items={breadcrumbs} className="mb-6" theme={theme} />
         )}
         {children}
       </main>

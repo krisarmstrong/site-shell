@@ -22,9 +22,13 @@ export interface FooterProps {
   social?: Array<{ label: string; href: string; icon: ReactNode }>;
   legalLinks: LegalLink[];
   copyright: ReactNode;
+  theme?: Theme;
 }
 
 export interface BreadcrumbsProps {
   items: BreadcrumbItem[];
   className?: string;
+  theme?: Theme;
 }
+
+export type Theme = 'dark' | 'light';

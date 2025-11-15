@@ -1,4 +1,44 @@
 import { Loader2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import type { Theme } from '../types';
+import { themeTokens } from '../tokens';
+
+// Type declaration for process (when available at runtime)
+declare const process: { env?: { NODE_ENV?: string } };
+
+/**
+ * Safely check if we're in development mode.
+ * This works for both Vite (import.meta.env.MODE) and webpack (process.env.NODE_ENV).
+ */
+const isDevelopmentEnvironment = (() => {
+  // Check process.env.NODE_ENV (webpack/CRA)
+  if (typeof process !== 'undefined' && process?.env?.NODE_ENV === 'production') {
+    return false;
+  }
+
+  // Check import.meta.env.MODE (Vite) - safe because import.meta is statically analyzed
+  // at build time and replaced with the actual value
+  try {
+    // @ts-ignore - import.meta may not be available in all environments
+    return import.meta.env?.MODE !== 'production';
+  } catch {
+    // Fallback to process.env check if import.meta is not available
+    return typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production';
+  }
+})();
+
+/**
+ * Safely try to get Sentry if it's available
+ * Returns null if Sentry is not installed (optional peer dependency)
+ */
+function getSentry(): typeof import('@sentry/react') | null {
+  try {
+    // @ts-ignore - Sentry is an optional peer dependency
+    return require('@sentry/react');
+  } catch {
+    return null;
+  }
+}
 
 // ============================================================================
 // Loading Spinner
@@ -11,6 +51,10 @@ export interface LoadingSpinnerProps {
   className?: string;
   /** Color variant */
   variant?: 'violet' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
+  /** Track slow loading (milliseconds, default: 5000ms) */
+  trackSlowLoadingAfter?: number;
+  /** Context for telemetry */
+  loadingContext?: string;
 }
 
 const spinnerColors = {
@@ -28,8 +72,62 @@ const spinnerColors = {
 export function LoadingSpinner({
   size = 48,
   className = '',
-  variant = 'blue'
+  variant = 'blue',
+  trackSlowLoadingAfter = 5000,
+  loadingContext = 'unknown'
 }: LoadingSpinnerProps) {
+  const startTimeRef = useRef<number>(Date.now());
+  const trackedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+    trackedRef.current = false;
+
+    const timer = setTimeout(() => {
+      if (!trackedRef.current) {
+        trackedRef.current = true;
+        const duration = Date.now() - startTimeRef.current;
+
+        // Log slow loading to console in development
+        if (isDevelopmentEnvironment) {
+          console.warn('[LoadingSpinner] Slow loading detected:', {
+            context: loadingContext,
+            duration,
+            threshold: trackSlowLoadingAfter,
+          });
+        }
+
+        // Send to Sentry if available
+        const Sentry = getSentry();
+        if (Sentry) {
+          Sentry.captureMessage('Slow loading detected', {
+            level: 'warning',
+            tags: {
+              component: 'LoadingSpinner',
+              context: loadingContext,
+            },
+            extra: {
+              duration,
+              threshold: trackSlowLoadingAfter,
+            },
+          });
+        }
+      }
+    }, trackSlowLoadingAfter);
+
+    return () => {
+      clearTimeout(timer);
+      // Track total loading time on unmount
+      const totalDuration = Date.now() - startTimeRef.current;
+      if (totalDuration > trackSlowLoadingAfter && isDevelopmentEnvironment) {
+        console.log('[LoadingSpinner] Completed after slow load:', {
+          context: loadingContext,
+          duration: totalDuration,
+        });
+      }
+    };
+  }, [trackSlowLoadingAfter, loadingContext]);
+
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <Loader2 size={size} className={`animate-spin ${spinnerColors[variant]}`} />
@@ -46,6 +144,8 @@ export interface LoadingCardProps {
   message?: string;
   /** Color variant */
   variant?: 'violet' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
+  /** Theme for surface/text colors */
+  theme?: Theme;
 }
 
 /**
@@ -53,12 +153,17 @@ export interface LoadingCardProps {
  */
 export function LoadingCard({
   message = 'Loading...',
-  variant = 'blue'
+  variant = 'blue',
+  theme = 'dark',
 }: LoadingCardProps) {
+  const palette = themeTokens[theme] || themeTokens.dark;
   return (
-    <div className="bg-gray-800 rounded-lg p-8 text-center">
+    <div
+      className="rounded-lg p-8 text-center border"
+      style={{ backgroundColor: palette.surfaceRaised, borderColor: palette.border, color: palette.textPrimary }}
+    >
       <LoadingSpinner size={48} className="mb-4" variant={variant} />
-      <p className="text-gray-300">{message}</p>
+      <p style={{ color: palette.textMuted }}>{message}</p>
     </div>
   );
 }
@@ -72,6 +177,8 @@ export interface LoadingPageProps {
   message?: string;
   /** Color variant */
   variant?: 'violet' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
+  /** Theme for surface/text colors */
+  theme?: Theme;
 }
 
 /**
@@ -79,12 +186,19 @@ export interface LoadingPageProps {
  */
 export function LoadingPage({
   message = 'Loading...',
-  variant = 'blue'
+  variant = 'blue',
+  theme = 'dark',
 }: LoadingPageProps) {
+  const palette = themeTokens[theme] || themeTokens.dark;
   return (
-    <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-white">
+    <div
+      className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)]"
+      style={{ color: palette.textPrimary }}
+    >
       <LoadingSpinner size={64} variant={variant} />
-      <p className="mt-4 text-lg text-gray-300">{message}</p>
+      <p className="mt-4 text-lg" style={{ color: palette.textMuted }}>
+        {message}
+      </p>
     </div>
   );
 }
@@ -104,7 +218,8 @@ export interface SkeletonProps {
 export function Skeleton({ className = '' }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse bg-gray-700 rounded ${className}`}
+      className={`animate-pulse rounded ${className}`}
+      style={{ backgroundColor: 'var(--theme-surface-hover, #1e293b)' }}
       aria-live="polite"
       aria-busy="true"
     />

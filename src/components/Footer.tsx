@@ -1,4 +1,5 @@
-import type { FooterProps } from '../types';
+import type { FooterProps, Theme } from '../types';
+import { themeTokens } from '../tokens';
 
 const defaultSocial = [
   {
@@ -16,9 +17,15 @@ export function Footer({
   social = defaultSocial,
   legalLinks,
   copyright,
+  theme = 'dark',
 }: FooterProps) {
+  const palette = themeTokens[theme] || themeTokens.dark;
+
   return (
-    <footer className="border-t border-gray-800 bg-gray-900 px-4 py-8 text-gray-400">
+    <footer
+      className="px-4 py-8 transition-colors duration-200"
+      style={{ backgroundColor: palette.surfaceRaised, color: palette.textMuted, borderTop: `1px solid ${palette.border}` }}
+    >
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 text-center">
         {social.length > 0 && (
           <div className="flex justify-center gap-6">
@@ -29,7 +36,8 @@ export function Footer({
                 aria-label={item.label}
                 rel="noopener noreferrer"
                 target="_blank"
-                className="text-gray-400 transition hover:text-white"
+                className="transition-colors"
+                style={{ color: palette.textMuted }}
               >
                 {item.icon}
               </a>
@@ -41,8 +49,12 @@ export function Footer({
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
             {legalLinks.map((link, index) => (
               <span key={link.path} className="flex items-center gap-4">
-                {index > 0 && <span className="text-gray-700">|</span>}
-                <a href={link.path} className="hover:text-white transition">
+                {index > 0 && <span style={{ color: palette.textMuted }}>|</span>}
+                <a
+                  href={link.path}
+                  className="transition-colors hover:underline"
+                  style={{ color: palette.textPrimary }}
+                >
                   {link.label}
                 </a>
               </span>
@@ -50,7 +62,9 @@ export function Footer({
           </div>
         )}
 
-        <div className="text-sm text-gray-500">{copyright}</div>
+        <div className="text-sm" style={{ color: palette.textMuted }}>
+          {copyright}
+        </div>
       </div>
     </footer>
   );

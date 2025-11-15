@@ -29,7 +29,7 @@ const LEADING_CLASS_MAP: Record<'relaxed' | 'normal' | 'loose', string> = {
 };
 
 export function H1({ children, className = '', accentColorClass, icon, ...props }: HeadingProps) {
-  const colorClass = accentColorClass || 'text-gray-100';
+  const colorClass = accentColorClass || 'text-[color:var(--theme-text-primary,#f1f5f9)]';
   return (
     <TextElement
       as="h1"
@@ -43,7 +43,7 @@ export function H1({ children, className = '', accentColorClass, icon, ...props 
 }
 
 export function H2({ children, className = '', accentColorClass, icon, ...props }: HeadingProps) {
-  const colorClass = accentColorClass || 'text-gray-100';
+  const colorClass = accentColorClass || 'text-[color:var(--theme-text-primary,#f1f5f9)]';
   return (
     <TextElement
       as="h2"
@@ -67,7 +67,7 @@ export function ArticleTitle({ children, className = '', ...props }: SimpleHeadi
   return (
     <TextElement
       as='h2'
-      className={`text-2xl lg:text-3xl font-bold text-gray-100 mb-3 ${className}`}
+      className={`text-2xl lg:text-3xl font-bold text-[color:var(--theme-text-primary,#f1f5f9)] mb-3 ${className}`}
       {...props}
     >
       {children}
@@ -79,7 +79,7 @@ export function SubSectionTitle({ children, className = '', icon, ...props }: Si
   return (
     <TextElement
       as='h3'
-      className={`text-xl font-semibold text-gray-100 border-b border-gray-700 pb-2 mb-3 flex items-center gap-2 ${className}`}
+      className={`text-xl font-semibold text-[color:var(--theme-text-primary,#f1f5f9)] border-b border-[color:var(--theme-surface-border,#334155)] pb-2 mb-3 flex items-center gap-2 ${className}`}
       {...props}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
@@ -92,7 +92,7 @@ export function CardTitle({ children, className = '', ...props }: SimpleHeadingP
   return (
     <TextElement
       as='h3'
-      className={`text-lg font-semibold text-gray-100 mb-1 ${className}`}
+      className={`text-lg font-semibold text-[color:var(--theme-text-primary,#f1f5f9)] mb-1 ${className}`}
       {...props}
     >
       {children}
@@ -115,7 +115,7 @@ export function P({
   className = '',
   leading = 'relaxed',
   size = 'base',
-  color = 'text-gray-300',
+  color = 'text-[color:var(--theme-text-muted,#94a3b8)]',
   as,
   ...props
 }: ParagraphProps) {
@@ -143,7 +143,7 @@ interface SmallTextProps {
 export function SmallText({
   children,
   className = '',
-  color = 'text-gray-300',
+  color = 'text-[color:var(--theme-text-muted,#94a3b8)]',
   leading = 'normal',
   ...props
 }: SmallTextProps) {
@@ -170,7 +170,7 @@ export function MutedText({ children, className = '', ...props }: MutedTextProps
   return (
     <TextElement
       as="p"
-      className={`text-sm text-gray-300 ${className}`}
+      className={`text-sm text-[color:var(--theme-text-muted,#94a3b8)] ${className}`}
       {...props}
     >
       {children}
