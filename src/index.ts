@@ -5,6 +5,8 @@ export { Breadcrumbs } from './components/Breadcrumbs';
 export { PageShell } from './components/PageShell';
 export { PrimaryNav } from './components/PrimaryNav';
 export { Navbar } from './components/Navbar';
+export { SiteSearch } from './components/SiteSearch';
+export type { SearchResult } from './components/SiteSearch';
 export { Avatar } from './components/Avatar';
 export { Button } from './components/ui/Button';
 export type { ButtonProps } from './components/ui/Button';
